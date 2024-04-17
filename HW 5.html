@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.549">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Drew Theut">
+
+<title>HW 5</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="HW 5_files/libs/clipboard/clipboard.min.js"></script>
+<script src="HW 5_files/libs/quarto-html/quarto.js"></script>
+<script src="HW 5_files/libs/quarto-html/popper.min.js"></script>
+<script src="HW 5_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="HW 5_files/libs/quarto-html/anchor.min.js"></script>
+<link href="HW 5_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="HW 5_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="HW 5_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="HW 5_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="HW 5_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">HW 5</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Drew Theut </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="loading-necessary-packages" class="level1">
+<h1>Loading necessary packages</h1>
+<section id="read-in-the-raw-data-and-pull-apart-into-demographics-comprehension-response-data-and-maze-reading-data" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-the-raw-data-and-pull-apart-into-demographics-comprehension-response-data-and-maze-reading-data">Read in the raw data and pull apart into demographics, comprehension response data, and maze reading data</h3>
+</section>
+</section>
+<section id="read-in-the-raw-data" class="level1">
+<h1>Read in the raw data</h1>
+<p>directory &lt;- “/Users/drewtheut/Downloads/” data_path &lt;- paste0(directory, “delong maze 40Ss.csv”) d &lt;- read.csv(data_path, header = FALSE, sep = “,”, comment.char = “#”, strip.white = TRUE, col.names = c(“Index”,“Time”,“Counter”,“Hash”,“Owner”,“Controller”,“Item”,“Element”,“Type”,“Group”,“FieldName”,“Value”,“WordNum”,“Word”,“Alt”,“WordOn”,“CorrWord”,“RT”,“Sent”,“TotalTime”,“Question”,“Resp”,“Acc”,“RespRT”))</p>
+</section>
+<section id="display-the-first-few-rows-to-confirm-data-is-loaded" class="level1">
+<h1>Display the first few rows to confirm data is loaded</h1>
+<p>print(head(d))</p>
+</section>
+<section id="processing-demographic-data" class="level1">
+<h1>Processing demographic data</h1>
+<p>demo &lt;- d %&gt;% filter(Controller == “Form”) %&gt;% select(1:12) %&gt;% mutate(across(where(is.character), as.factor))</p>
+</section>
+<section id="experiment-overview" class="level1">
+<h1>Experiment Overview</h1>
+<p>This study investigates the influence of probabilistic prediction on the processing of English articles (“a” or “an”) before nouns. The hypothesis is that the correct article before a predictable noun can be processed faster than before an unpredictable noun, due to cognitive anticipation mechanisms in language processing.</p>
+<p><strong>Example Sentences from Stimuli:</strong> - Expected: “He handed her <em>an</em> apple.” - Unexpected: “He handed her <em>a</em> egg.”</p>
+</section>
+<section id="data-dictionary" class="level1">
+<h1>Data Dictionary</h1>
+<p>The dataset comprises various fields collected during a language comprehension study using a maze task:</p>
+<ul>
+<li><strong>Results_index</strong>: Numeric, a unique identifier for each experiment trial.</li>
+<li><strong>Time</strong>: Timestamp, the exact date and time when the response was recorded.</li>
+<li><strong>Counter</strong>: Numeric, a sequential counter indicating the number of times a particular event occurred.</li>
+<li><strong>Hash</strong>: String, a unique hash code associated with each session for data integrity.</li>
+<li><strong>Logged in as experiment owner? (if known)</strong>: Boolean, indicates whether the session was conducted by the experiment owner.</li>
+<li><strong>Controller name</strong>: String, the name of the controller used in the experiment setup.</li>
+<li><strong>Item number</strong>: Numeric, identifier for the specific item within the test.</li>
+<li><strong>Element number</strong>: Numeric, identifier for elements within a specific item.</li>
+<li><strong>Type</strong>: String, categorizes the type of data or phase in the experiment (e.g., ‘intro’, ‘test’).</li>
+<li><strong>Group</strong>: String/Numeric, indicates the group to which the participant was assigned.</li>
+<li><strong>Field name</strong>: String, the name of the field specific to some tests.</li>
+<li><strong>Field value</strong>: String/Numeric, the value associated with the field name.</li>
+<li><strong>Word number</strong>: Numeric, a number assigned to each word used in the test.</li>
+<li><strong>Word</strong>: String, the actual word used in the maze task.</li>
+<li><strong>Alternative</strong>: String, alternative words or phrases used in the test.</li>
+<li><strong>Word on (0=left, 1=right)</strong>: Numeric, indicating the position of the word on the screen.</li>
+<li><strong>Correct</strong>: Boolean, whether the response given was correct.</li>
+<li><strong>Reading time to first answer</strong>: Numeric, time taken from the start until the first answer was given.</li>
+<li><strong>Sentence</strong>: String, the sentence used or formed during the experiment.</li>
+<li><strong>Total time to correct answer</strong>: Numeric, total time taken to give the correct answer.</li>
+<li><strong>Question (NULL if none)</strong>: String, the question posed during the experiment, if any.</li>
+<li><strong>Answer</strong>: String, the answer provided by the participant.</li>
+<li><strong>Whether or not answer was correct (NULL if N/A)</strong>: Boolean, indicates whether the provided answer was correct, applicable for questions with defined answers.</li>
+<li><strong>Time taken to answer</strong>: Numeric, the time taken by the participant to answer the question posed.</li>
+</ul>
+</section>
+<section id="total-number-of-partiicpants" class="level1">
+<h1>Total Number of Partiicpants</h1>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>          Index                 Time Counter                   Hash
+1 Results index                 Time Counter                   Hash
+2             0 2021-03-09T14:33:02Z       4 U+8f26HxAvAy4+cd8P3vkg
+3             0 2021-03-09T14:33:02Z       4 U+8f26HxAvAy4+cd8P3vkg
+4             0 2021-03-09T14:33:02Z       4 U+8f26HxAvAy4+cd8P3vkg
+5             0 2021-03-09T14:33:02Z       4 U+8f26HxAvAy4+cd8P3vkg
+6             0 2021-03-09T14:33:02Z       4 U+8f26HxAvAy4+cd8P3vkg
+                                      Owner      Controller        Item
+1 Logged in as experiment owner? (if known) Controller name Item number
+2                                        no            Form           7
+3                                        no            Form           7
+4                                        no            Form           7
+5                                        no            Form           7
+6                                        no            Form           7
+         Element  Type Group  FieldName       Value     WordNum Word
+1 Element number  Type Group Field name Field value Word number Word
+2              0 intro  NULL        age          21                 
+3              0 intro  NULL    natlang     English                 
+4              0 intro  NULL      state         USA                 
+5              0 intro  NULL parentlang     English                 
+6              0 intro  NULL    domlang     English                 
+          Alt                    WordOn CorrWord                           RT
+1 Alternative Word on (0=left, 1=right)  Correct Reading time to first answer
+2                                                                            
+3                                                                            
+4                                                                            
+5                                                                            
+6                                                                            
+      Sent                    TotalTime                 Question   Resp
+1 Sentence Total time to correct answer Question (NULL if none). Answer
+2                                                                      
+3                                                                      
+4                                                                      
+5                                                                      
+6                                                                      
+                                              Acc                RespRT
+1 Whether or not answer was correct (NULL if N/A) Time taken to answer.
+2                                                                      
+3                                                                      
+4                                                                      
+5                                                                      
+6                                                                      </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total number of participants:  40</code></pre>
+</div>
+</div>
+<p>demo %&gt;% filter(field == “age”) %&gt;% mutate(resp = as.character(resp), # Ensure resp is character to allow for checks resp = if_else(str_detect(resp, “<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>+$”), resp, NA_character_), # Replace non-numeric with NA resp = as.numeric(resp)) %&gt;% # Convert resp to numeric, safely with NAs for non-numeric</p>
+<p>summarize( m.age = mean(resp, na.rm = TRUE), # Calculate mean, excluding NAs min.age = min(resp, na.rm = TRUE), # Calculate minimum, excluding NAs max.age = max(resp, na.rm = TRUE), # Calculate maximum, excluding NAs sd.age = sd(resp, na.rm = TRUE) # Calculate standard deviation, excluding NAs )</p>
+<pre><code>
+# Reproudcing Figure 1
+
+
+rgn.acc.raw &lt;- rt.s.filt %&gt;% filter(rgn.fix &gt; -4 &amp; rgn.fix &lt; 5) %&gt;% group_by(rgn.fix, expect) %&gt;% summarize(n=n(), subj=length(unique(Hash)), err=1-mean(Acc), stderr=sd(Acc)/sqrt(subj)) %&gt;% as.data.frame()
+print(rgn.acc.raw, digits=2)
+rgn.acc.raw$rgn &lt;- as.factor(recode(rgn.acc.raw$rgn.fix, "-3"="CW-3", "-2"="CW-2", "-1"="CW-1", "0"="art", "1"="n","2"="CW+1", "3"="CW+2", "4"="CW+3"))
+rgn.acc.raw$rgn &lt;- ordered(rgn.acc.raw$rgn, levels = c("CW-3", "CW-2", "CW-1", "art", "n", "CW+1", "CW+2", "CW+3"))
+ggplot(rgn.acc.raw, aes(x=rgn, y=err, group=expect, shape=expect)) +
+  geom_line(stat = "identity", position=position_dodge(width=.3)) +
+  geom_point(stat = "identity", position=position_dodge(width=.3)) +
+  geom_errorbar(aes(ymin = err-stderr, ymax = err+stderr), width=.15, position=position_dodge(width=.3)) +
+  ylim(0,1) +
+  scale_shape_manual(name = "", labels = c("Expected", "Unexpected"), values = c(21,19)) + 
+  xlab("Word") + ylab("Error Rate") +
+  theme_bw(base_size=12)+ theme(legend.text=element_text(size=10))
+ggsave(paste(directory,"delong maze Error by word.png",sep=""), dpi=300, height=70, width=190, units="mm")
+
+</code></pre>
+<p>library(dplyr) library(stringr)</p>
+<p>demo %&gt;% filter(field == “age”) %&gt;% mutate(resp = as.character(resp), # Ensure resp is character to allow for checks resp = if_else(str_detect(resp, “<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>+$”), resp, NA_character_), # Replace non-numeric with NA resp = as.numeric(resp)) %&gt;% # Convert resp to numeric, safely with NAs for non-numeric</p>
+<p>summarize( m.age = mean(resp, na.rm = TRUE), # Calculate mean, excluding NAs min.age = min(resp, na.rm = TRUE), # Calculate minimum, excluding NAs max.age = max(resp, na.rm = TRUE), # Calculate maximum, excluding NAs sd.age = sd(resp, na.rm = TRUE) # Calculate standard deviation, excluding NAs )</p>
+<p>library(dplyr) library(stringr) library(knitr)</p>
+</section>
+<section id="assuming-demo-is-your-dataframe" class="level1">
+<h1>Assuming ‘demo’ is your dataframe</h1>
+<p>results &lt;- demo %&gt;% filter(field == “age”) %&gt;% mutate(resp = as.character(resp), # Ensure resp is character to allow for checks resp = if_else(str_detect(resp, “<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>+$”), resp, NA_character_), # Replace non-numeric with NA resp = as.numeric(resp)) %&gt;% # Convert resp to numeric, safely with NAs for non-numeric summarize( m.age = mean(resp, na.rm = TRUE), # Calculate mean, excluding NAs min.age = min(resp, na.rm = TRUE), # Calculate minimum, excluding NAs max.age = max(resp, na.rm = TRUE), # Calculate maximum, excluding NAs sd.age = sd(resp, na.rm = TRUE) # Calculate standard deviation, excluding NAs )</p>
+</section>
+<section id="create-a-table" class="level1">
+<h1>Create a table</h1>
+<p>kable(results, caption = “Summary Statistics for Age”)</p>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>0-9.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>0-9.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>0-9.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

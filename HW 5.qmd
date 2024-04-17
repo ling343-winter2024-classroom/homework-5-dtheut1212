@@ -1,0 +1,195 @@
+---
+title: "HW 5"
+format: html
+author: "Drew Theut"
+---
+
+
+# Loading necessary packages
+```{r setup, include=FALSE}
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+library(tidyverse) 
+library(emmeans)
+library(logistf)
+library(cowplot)
+
+```
+### Read in the raw data and pull apart into demographics, comprehension response data, and maze reading data
+
+# Read in the raw data
+directory <- "/Users/drewtheut/Downloads/"
+data_path <- paste0(directory, "delong maze 40Ss.csv")
+d <- read.csv(data_path, header = FALSE, sep = ",", comment.char = "#", 
+              strip.white = TRUE, col.names = c("Index","Time","Counter","Hash","Owner","Controller","Item","Element","Type","Group","FieldName","Value","WordNum","Word","Alt","WordOn","CorrWord","RT","Sent","TotalTime","Question","Resp","Acc","RespRT"))
+
+# Display the first few rows to confirm data is loaded
+print(head(d))
+
+# Processing demographic data
+demo <- d %>% 
+        filter(Controller == "Form") %>% 
+        select(1:12) %>% 
+        mutate(across(where(is.character), as.factor))
+
+
+ 
+
+
+
+
+
+
+
+
+
+  
+
+# Experiment Overview
+
+This study investigates the influence of probabilistic prediction on the processing of English articles ("a" or "an") before nouns. The hypothesis is that the correct article before a predictable noun can be processed faster than before an unpredictable noun, due to cognitive anticipation mechanisms in language processing.
+
+**Example Sentences from Stimuli:**
+- Expected: "He handed her *an* apple."
+- Unexpected: "He handed her *a* egg."
+
+# Data Dictionary
+
+The dataset comprises various fields collected during a language comprehension study using a maze task:
+
+- **Results_index**: Numeric, a unique identifier for each experiment trial.
+- **Time**: Timestamp, the exact date and time when the response was recorded.
+- **Counter**: Numeric, a sequential counter indicating the number of times a particular event occurred.
+- **Hash**: String, a unique hash code associated with each session for data integrity.
+- **Logged in as experiment owner? (if known)**: Boolean, indicates whether the session was conducted by the experiment owner.
+- **Controller name**: String, the name of the controller used in the experiment setup.
+- **Item number**: Numeric, identifier for the specific item within the test.
+- **Element number**: Numeric, identifier for elements within a specific item.
+- **Type**: String, categorizes the type of data or phase in the experiment (e.g., 'intro', 'test').
+- **Group**: String/Numeric, indicates the group to which the participant was assigned.
+- **Field name**: String, the name of the field specific to some tests.
+- **Field value**: String/Numeric, the value associated with the field name.
+- **Word number**: Numeric, a number assigned to each word used in the test.
+- **Word**: String, the actual word used in the maze task.
+- **Alternative**: String, alternative words or phrases used in the test.
+- **Word on (0=left, 1=right)**: Numeric, indicating the position of the word on the screen.
+- **Correct**: Boolean, whether the response given was correct.
+- **Reading time to first answer**: Numeric, time taken from the start until the first answer was given.
+- **Sentence**: String, the sentence used or formed during the experiment.
+- **Total time to correct answer**: Numeric, total time taken to give the correct answer.
+- **Question (NULL if none)**: String, the question posed during the experiment, if any.
+- **Answer**: String, the answer provided by the participant.
+- **Whether or not answer was correct (NULL if N/A)**: Boolean, indicates whether the provided answer was correct, applicable for questions with defined answers.
+- **Time taken to answer**: Numeric, the time taken by the participant to answer the question posed.
+
+
+
+
+# Total Number of Partiicpants
+
+```{r echo=FALSE}
+library(tidyverse)
+# Read in the raw data
+directory <- "/Users/drewtheut/Downloads/"
+data_path <- paste0(directory, "delong maze 40Ss.csv")
+d <- read.csv(data_path, header = FALSE, sep = ",", comment.char = "#", 
+              strip.white = TRUE, col.names = c("Index","Time","Counter","Hash","Owner","Controller","Item","Element","Type","Group","FieldName","Value","WordNum","Word","Alt","WordOn","CorrWord","RT","Sent","TotalTime","Question","Resp","Acc","RespRT"))
+
+# Display the first few rows to confirm data is loaded
+print(head(d))
+
+# Processing demographic data
+demo <- d %>% 
+        filter(Controller == "Form") %>% 
+        select(1:12) %>% 
+        mutate(across(where(is.character), as.factor))
+
+
+ 
+# Calculating the number of distinct participants
+participant_count <- d %>%
+  distinct(Hash) %>%
+  nrow()
+cat("Total number of participants: ", participant_count)
+
+```
+
+
+
+demo %>% 
+  filter(field == "age") %>%
+  mutate(resp = as.character(resp),  # Ensure resp is character to allow for checks
+         resp = if_else(str_detect(resp, "^[0-9.]+$"), resp, NA_character_), # Replace non-numeric with NA
+         resp = as.numeric(resp)) %>%  # Convert resp to numeric, safely with NAs for non-numeric
+
+  summarize(
+    m.age = mean(resp, na.rm = TRUE),  # Calculate mean, excluding NAs
+    min.age = min(resp, na.rm = TRUE),  # Calculate minimum, excluding NAs
+    max.age = max(resp, na.rm = TRUE),  # Calculate maximum, excluding NAs
+    sd.age = sd(resp, na.rm = TRUE)  # Calculate standard deviation, excluding NAs
+  )
+
+
+
+
+
+```
+
+# Reproudcing Figure 1
+
+
+rgn.acc.raw <- rt.s.filt %>% filter(rgn.fix > -4 & rgn.fix < 5) %>% group_by(rgn.fix, expect) %>% summarize(n=n(), subj=length(unique(Hash)), err=1-mean(Acc), stderr=sd(Acc)/sqrt(subj)) %>% as.data.frame()
+print(rgn.acc.raw, digits=2)
+rgn.acc.raw$rgn <- as.factor(recode(rgn.acc.raw$rgn.fix, "-3"="CW-3", "-2"="CW-2", "-1"="CW-1", "0"="art", "1"="n","2"="CW+1", "3"="CW+2", "4"="CW+3"))
+rgn.acc.raw$rgn <- ordered(rgn.acc.raw$rgn, levels = c("CW-3", "CW-2", "CW-1", "art", "n", "CW+1", "CW+2", "CW+3"))
+ggplot(rgn.acc.raw, aes(x=rgn, y=err, group=expect, shape=expect)) +
+  geom_line(stat = "identity", position=position_dodge(width=.3)) +
+  geom_point(stat = "identity", position=position_dodge(width=.3)) +
+  geom_errorbar(aes(ymin = err-stderr, ymax = err+stderr), width=.15, position=position_dodge(width=.3)) +
+  ylim(0,1) +
+  scale_shape_manual(name = "", labels = c("Expected", "Unexpected"), values = c(21,19)) + 
+  xlab("Word") + ylab("Error Rate") +
+  theme_bw(base_size=12)+ theme(legend.text=element_text(size=10))
+ggsave(paste(directory,"delong maze Error by word.png",sep=""), dpi=300, height=70, width=190, units="mm")
+
+
+```
+library(dplyr)
+library(stringr)
+
+
+demo %>% 
+  filter(field == "age") %>%
+  mutate(resp = as.character(resp),  # Ensure resp is character to allow for checks
+         resp = if_else(str_detect(resp, "^[0-9.]+$"), resp, NA_character_), # Replace non-numeric with NA
+         resp = as.numeric(resp)) %>%  # Convert resp to numeric, safely with NAs for non-numeric
+
+  summarize(
+    m.age = mean(resp, na.rm = TRUE),  # Calculate mean, excluding NAs
+    min.age = min(resp, na.rm = TRUE),  # Calculate minimum, excluding NAs
+    max.age = max(resp, na.rm = TRUE),  # Calculate maximum, excluding NAs
+    sd.age = sd(resp, na.rm = TRUE)  # Calculate standard deviation, excluding NAs
+  )
+
+
+library(dplyr)
+library(stringr)
+library(knitr)
+
+# Assuming 'demo' is your dataframe
+results <- demo %>%
+  filter(field == "age") %>%
+  mutate(resp = as.character(resp),  # Ensure resp is character to allow for checks
+         resp = if_else(str_detect(resp, "^[0-9.]+$"), resp, NA_character_), # Replace non-numeric with NA
+         resp = as.numeric(resp)) %>%  # Convert resp to numeric, safely with NAs for non-numeric
+  summarize(
+    m.age = mean(resp, na.rm = TRUE),  # Calculate mean, excluding NAs
+    min.age = min(resp, na.rm = TRUE),  # Calculate minimum, excluding NAs
+    max.age = max(resp, na.rm = TRUE),  # Calculate maximum, excluding NAs
+    sd.age = sd(resp, na.rm = TRUE)  # Calculate standard deviation, excluding NAs
+  )
+
+# Create a table
+kable(results, caption = "Summary Statistics for Age")
+
